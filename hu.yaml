@@ -1,0 +1,32 @@
+name: Sync to Gitee and Auto Commit
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # 每天 UTC 16:00 (北京时间 00:00)
+  workflow_dispatch:
+
+jobs:
+  sync-and-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+
+      - name: Sync to Gitee
+        uses: wearerequired/git-mirror-action@master
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.GITEE_SSH_PRIVATE_KEY }}
+        with:
+          source-repo: git@github.com:${{ github.repository }}.git
+          destination-repo: git@gitee.com:waz003/shuaxin.git
+
+      - name: Auto Commit to Gitee
+        run: |
+          git clone https://gitee.com/waz003/shuaxin.git gitee-repo
+          cd gitee-repo
+          git config user.email "383702566@qq.com"
+          git config user.name "wuhu201314"
+          git commit --allow-empty -m "auto: daily commit - $(date)"
+          git push
